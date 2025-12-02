@@ -23,19 +23,25 @@
  * some of the values are redefined here with different names, these are marked
  * with comment.
  */
- /* Flash layout for stm32h573i_dk with BL2 (multiple image boot):
+ /* Flash layout for stm32h573i_dk with BL2 (OVERWRITE_ONLY mode):
  *
- * 0x0000_0000 SCRATCH (40KB)
+ * NOTE: Partition sizes updated to match Zephyr DTS (192 KB each)
+ *
+ * 0x0000_0000 SCRATCH (40KB) - not used in OVERWRITE_ONLY mode
  * 0x0001_0000 BL2 - counters(16 KB)
  * 0x0001_4000 BL2 - MCUBoot (48 KB)
  * 0x0002_8000 OTP Write Protect (16 KB)
  * 0x0003_2000 NV counters area (16 KB)
  * 0x0003_6000 Secure Storage Area (16 KB)
  * 0x0003_A000 Internal Trusted Storage Area (16 KB)
- * 0x0003_E000 Secure image     primary slot (100 KB)
- * 0x0007_E000 Non-secure image primary slot (280 KB)
- * 0x000C_E000 Secure image     secondary slot (100 KB)
- * 0x0010_E000 Non-secure image secondary slot (280 KB)
+ * 0x0003_E000 Secure image     primary slot (192 KB - updated!)
+ * 0x0006_E000 Non-secure image primary slot (192 KB - updated!)
+ * 0x0009_E000 Secure image     secondary slot (192 KB - updated!)
+ * 0x000C_E000 Non-secure image secondary slot (192 KB - updated!)
+ *
+ * WARNING: Offsets in this comment may not match actual Zephyr DTS layout.
+ * DTS places images at: S=0x10000, NS=0x40000 (different from calculated here)
+ * This is due to storage areas being relocated to end of flash in DTS.
  *
  * Bl2 binary is written at 0x1_2000:
  * it contains bl2_counter init value, OTP write protect, NV counters area init.
@@ -138,8 +144,8 @@
 #error "FLASH_ITS_AREA_OFFSET not aligned on FLASH_AREA_IMAGE_SECTOR_SIZE"
 #endif /*  (FLASH_ITS_AREA_OFFSET % FLASH_AREA_IMAGE_SECTOR_SIZE) != 0 */
 
-#define FLASH_S_PARTITION_SIZE          (0x50000) /* 320 KB for S partition */
-#define FLASH_NS_PARTITION_SIZE         (0x90000) /* 576 KB for NS partition */
+#define FLASH_S_PARTITION_SIZE          (0x30000) /* 192 KB for S partition (matches Zephyr DTS) */
+#define FLASH_NS_PARTITION_SIZE         (0x30000) /* 192 KB for NS partition (matches Zephyr DTS) */
 
 #define FLASH_PARTITION_SIZE            (FLASH_S_PARTITION_SIZE+FLASH_NS_PARTITION_SIZE)
 
