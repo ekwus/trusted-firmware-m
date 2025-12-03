@@ -27,6 +27,8 @@ set(MCUBOOT_FIH_PROFILE                    LOW         CACHE STRING    "Fault in
 ################################## LOG LEVEL ###########################################
 set(TFM_SPM_LOG_LEVEL             TFM_SPM_LOG_LEVEL_INFO          CACHE STRING    "Set default SPM log level as INFO level")
 set(TFM_PARTITION_LOG_LEVEL       TFM_PARTITION_LOG_LEVEL_INFO    CACHE STRING    "Set default Secure Partition log level as INFO level")
+# Enable debug logging for MCUboot to diagnose validation failures
+set(MCUBOOT_LOG_LEVEL             "DEBUG"                         CACHE STRING    "Level of logging to use for MCUboot [OFF, ERROR, WARNING, INFO, DEBUG]" FORCE)
 set(MCUBOOT_HW_ROLLBACK_PROT            ON          CACHE BOOL      "Enable security counter validation against non-volatile HW counters")
 ################################## Platform-specific configurations ####################################
 set(CONFIG_TFM_USE_TRUSTZONE               ON           CACHE BOOL      "Use TrustZone")
