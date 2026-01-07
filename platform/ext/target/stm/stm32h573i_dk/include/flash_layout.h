@@ -144,8 +144,8 @@
 #error "FLASH_ITS_AREA_OFFSET not aligned on FLASH_AREA_IMAGE_SECTOR_SIZE"
 #endif /*  (FLASH_ITS_AREA_OFFSET % FLASH_AREA_IMAGE_SECTOR_SIZE) != 0 */
 
-#define FLASH_S_PARTITION_SIZE          (0x30000) /* 192 KB for S partition (matches Zephyr DTS) */
-#define FLASH_NS_PARTITION_SIZE         (0x30000) /* 192 KB for NS partition (matches Zephyr DTS) */
+#define FLASH_S_PARTITION_SIZE          (0x30000) /* 192 KB for S partition */
+#define FLASH_NS_PARTITION_SIZE         (0x80000) /* 512 KB for NS partition (HTTPS server needs more space) */
 
 #define FLASH_PARTITION_SIZE            (FLASH_S_PARTITION_SIZE+FLASH_NS_PARTITION_SIZE)
 

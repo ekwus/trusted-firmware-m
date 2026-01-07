@@ -64,11 +64,13 @@
 
 
 #define TOTAL_ROM_SIZE          FLASH_TOTAL_SIZE
-#define TOTAL_RAM_SIZE          (_SRAM1_SIZE_MAX +_SRAM2_SIZE_MAX)
+/* SRAM1 + SRAM2 used for S/NS split, SRAM3 available separately to NS */
+#define TOTAL_RAM_SIZE          (_SRAM1_SIZE_MAX + _SRAM2_SIZE_MAX)
 
 #define S_TOTAL_RAM2_SIZE       (_SRAM2_SIZE_MAX) /*! size require for Secure part */
 #define S_TOTAL_RAM1_SIZE       (0x10000)
 #define S_TOTAL_RAM_SIZE        (S_TOTAL_RAM2_SIZE + S_TOTAL_RAM1_SIZE)
+/* NS gets SRAM1 portion (~192KB) + SRAM3 (320KB) is available separately */
 #define NS_TOTAL_RAM_SIZE       (TOTAL_RAM_SIZE - S_TOTAL_RAM_SIZE)
 /*
  * Boot partition structure if MCUBoot is used:
