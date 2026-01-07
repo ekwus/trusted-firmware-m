@@ -68,9 +68,9 @@
 #define TOTAL_RAM_SIZE          (_SRAM1_SIZE_MAX + _SRAM2_SIZE_MAX)
 
 #define S_TOTAL_RAM2_SIZE       (_SRAM2_SIZE_MAX) /*! size require for Secure part */
-#define S_TOTAL_RAM1_SIZE       (0x10000)
+#define S_TOTAL_RAM1_SIZE       (0x0)  /* Don't use SRAM1 for secure - give it all to NS */
 #define S_TOTAL_RAM_SIZE        (S_TOTAL_RAM2_SIZE + S_TOTAL_RAM1_SIZE)
-/* NS gets SRAM1 portion (~192KB) + SRAM3 (320KB) is available separately */
+/* NS gets all of SRAM1 (256KB) + SRAM3 (320KB) available separately */
 #define NS_TOTAL_RAM_SIZE       (TOTAL_RAM_SIZE - S_TOTAL_RAM_SIZE)
 /*
  * Boot partition structure if MCUBoot is used:
