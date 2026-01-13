@@ -48,7 +48,8 @@
 
 #define _SRAM2_TOP              (0x40000) /* 256Kbytes */
 #define _SRAM1_SIZE_MAX         (0x40000) /*!< SRAM1=256 KB */
-#define _SRAM2_SIZE_MAX         (0x10000 - BOOT_TFM_SHARED_DATA_SIZE)  /*!< SRAM2=64k -0x400 */
+/* SRAM2 is now fully available - BOOT_TFM_SHARED_DATA moved to secure SRAM3 */
+#define _SRAM2_SIZE_MAX         (0x10000)  /*!< SRAM2=64 KB (full size) */
 #define _SRAM3_SIZE_MAX         (0x50000) /*!< SRAM3=320 KB */
 
 /* Flash and internal SRAMs base addresses - Non secure aliased */
@@ -64,14 +65,22 @@
 
 
 #define TOTAL_ROM_SIZE          FLASH_TOTAL_SIZE
-/* SRAM1 + SRAM2 used for S/NS split, SRAM3 available separately to NS */
-#define TOTAL_RAM_SIZE          (_SRAM1_SIZE_MAX + _SRAM2_SIZE_MAX)
+/* All SRAM regions combined: SRAM1(256KB) + SRAM2(64KB) + SRAM3(320KB) = 640KB
+ * Physical addresses 0x20000000 - 0x200A0000 are contiguous.
+ * Secure alias: 0x30000000+, Non-secure alias: 0x20000000+
+ *
+ * Layout: Secure at END, NS gets large contiguous block at START
+ *   NS:     0x20000000 - 0x20090000 (576KB)
+ *   Secure: 0x30090000 - 0x300A0000 (64KB, via secure alias)
+ */
+#define TOTAL_RAM_SIZE          (0xA0000)  /* 640KB total (SRAM1+SRAM2+SRAM3) */
 
-#define S_TOTAL_RAM2_SIZE       (_SRAM2_SIZE_MAX) /*! size require for Secure part */
-#define S_TOTAL_RAM1_SIZE       (0x0)  /* Don't use SRAM1 for secure - give it all to NS */
-#define S_TOTAL_RAM_SIZE        (S_TOTAL_RAM2_SIZE + S_TOTAL_RAM1_SIZE)
-/* NS gets all of SRAM1 (256KB) + SRAM3 (320KB) available separately */
-#define NS_TOTAL_RAM_SIZE       (TOTAL_RAM_SIZE - S_TOTAL_RAM_SIZE)
+#define S_TOTAL_RAM_SIZE        (0x10000)  /* 64KB for Secure at end of RAM */
+#define NS_TOTAL_RAM_SIZE       (TOTAL_RAM_SIZE - S_TOTAL_RAM_SIZE)  /* 576KB for NS */
+
+/* Legacy defines kept for compatibility (not used in new layout) */
+#define S_TOTAL_RAM2_SIZE       (0x0)
+#define S_TOTAL_RAM1_SIZE       (0x0)
 /*
  * Boot partition structure if MCUBoot is used:
  * 0x0_0000 Bootloader header
@@ -189,8 +198,11 @@
 /*  keep 256 bytes unused to place while(1) for non secure to enable */
 /*  regression from local tool with non secure attachment
  *  This avoid blocking board in case of hardening error */
+/* BL2 data region: Uses SRAM2 (64KB) for bootloader stack/heap.
+ * BOOT_TFM_SHARED_DATA is now at end of secure SRAM3, not in SRAM2.
+ */
 #define BL2_DATA_START                      (S_RAM_ALIAS(_SRAM1_SIZE_MAX))
-#define BL2_DATA_SIZE                       (BOOT_TFM_SHARED_DATA_BASE - BL2_DATA_START)
+#define BL2_DATA_SIZE                       (_SRAM2_SIZE_MAX)  /* 64KB in SRAM2 */
 #define BL2_DATA_LIMIT                      (BL2_DATA_START + BL2_DATA_SIZE - 1)
 
 /* Define BL2 MPU SRAM protection to remove execution capability */

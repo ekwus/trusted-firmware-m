@@ -288,9 +288,12 @@
 #define BL2_S_RAM_ALIAS_BASE             (0x30000000)
 #define BL2_NS_RAM_ALIAS_BASE            (0x20000000)
 
-/*  This area in SRAM 2 is updated BL2 and can be lock to avoid any changes */
+/*  This area is updated by BL2 and can be locked to avoid any changes.
+ *  Moved to secure SRAM3 region (end of RAM) to keep NS memory contiguous.
+ *  Secure region: 0x30090000 - 0x300A0000 (64KB at end of SRAM3)
+ */
 #define BOOT_TFM_SHARED_DATA_SIZE        (0x400)
-#define BOOT_TFM_SHARED_DATA_BASE        (0x3004fc00)
+#define BOOT_TFM_SHARED_DATA_BASE        (0x3009fc00)
 #define SHARED_BOOT_MEASUREMENT_BASE     BOOT_TFM_SHARED_DATA_BASE
 #define SHARED_BOOT_MEASUREMENT_SIZE     BOOT_TFM_SHARED_DATA_SIZE
 

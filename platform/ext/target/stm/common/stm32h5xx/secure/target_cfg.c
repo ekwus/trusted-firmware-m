@@ -105,6 +105,7 @@ const struct sau_cfg_t sau_init_cfg[] = {
         FLOW_CTRL_SAU_CH_R0,
 #endif /* FLOW_CONTROL */
     },
+    /* NS RAM: All of SRAM1 (256KB) - from 0x20000000 to 0x2003FFFF */
     {
         TFM_NS_REGION_DATA_1,
         SRAM1_BASE_NS,
@@ -117,10 +118,14 @@ const struct sau_cfg_t sau_init_cfg[] = {
         FLOW_CTRL_SAU_CH_R1,
 #endif /* FLOW_CONTROL */
     },
+    /* NS RAM: SRAM2 (64KB) + NS portion of SRAM3 (256KB)
+     * From 0x20040000 to 0x2008FFFF (SRAM2 + first 256KB of SRAM3)
+     * Last 64KB of SRAM3 (0x20090000-0x2009FFFF) remains secure
+     */
     {
         TFM_NS_REGION_DATA_2,
-        SRAM3_BASE_NS,
-        (SRAM3_BASE_NS + _SRAM3_SIZE_MAX - 1),
+        SRAM2_BASE_NS,
+        (SRAM3_BASE_NS + _SRAM3_SIZE_MAX - S_TOTAL_RAM_SIZE - 1),
         TFM_FALSE,
 #ifdef FLOW_CONTROL
         FLOW_STEP_SAU_EN_R2,
@@ -503,35 +508,25 @@ void gtzc_init_cfg(void)
 
     /* Enable GTZC clock */
     __HAL_RCC_GTZC1_CLK_ENABLE();
-    /* assume non secure ram is only in SRAM 1 , SRAM 2 is reserved for secure */
-      gtzc_config_sram(SRAM1_BASE, SRAM1_SIZE, (NS_DATA_START - NS_RAM_ALIAS(0)),
-              (NS_DATA_START + NS_DATA_SIZE - 1) - NS_RAM_ALIAS(0), FLAG_NSEC | FLAG_NPRIV);
-#if S_TOTAL_RAM1_SIZE != 0
-      /*  is unpriv area ending in SRAM1 */
-      if ((SRAM2_BASE > (uint32_t)&REGION_NAME(Image$$, TFM_APP_RW_STACK_END, $$Base)))
-      {
-          gtzc_config_sram(SRAM1_BASE, SRAM1_SIZE, (NS_DATA_START + NS_DATA_SIZE) - NS_RAM_ALIAS(0),
-                  (uint32_t)&REGION_NAME(Image$$, TFM_APP_RW_STACK_END, $$Base) - SRAM1_BASE  -1, FLAG_NPRIV);
-          gtzc_config_sram(SRAM1_BASE, SRAM1_SIZE, (uint32_t)&REGION_NAME(Image$$, TFM_APP_RW_STACK_END, $$Base) - SRAM1_BASE,
-                  SRAM1_SIZE - 1, 0);
-          gtzc_config_sram(SRAM2_BASE, SRAM2_SIZE, 0, SRAM2_SIZE - 1, 0);
-      }
-      else
-      {
-          gtzc_config_sram(SRAM1_BASE, SRAM1_SIZE, (NS_DATA_START + NS_DATA_SIZE) - NS_RAM_ALIAS(0), SRAM1_SIZE -1, FLAG_NPRIV);
-          gtzc_config_sram(SRAM2_BASE, SRAM2_SIZE, 0, (uint32_t)&REGION_NAME(Image$$, TFM_APP_RW_STACK_END, $$Base)
-                  - SRAM2_BASE - 1, FLAG_NPRIV);
-          gtzc_config_sram(SRAM2_BASE, SRAM2_SIZE, (uint32_t)&REGION_NAME(Image$$, TFM_APP_RW_STACK_END, $$Base)
-                  - SRAM2_BASE, SRAM2_SIZE - 1, 0);
-      }
-#else
-      /*   only SRAM2 is secure  */
-      gtzc_config_sram(SRAM2_BASE, SRAM2_SIZE, 0, (uint32_t)&REGION_NAME(Image$$, TFM_APP_RW_STACK_END, $$Base)
-              - SRAM2_BASE - 1, FLAG_NPRIV);
-      gtzc_config_sram(SRAM2_BASE, SRAM2_SIZE, (uint32_t)&REGION_NAME(Image$$, TFM_APP_RW_STACK_END, $$Base)
-              -SRAM2_BASE, SRAM2_SIZE - 1, 0);
-#endif
-      gtzc_config_sram(SRAM3_BASE, SRAM3_SIZE, 0, SRAM3_SIZE -1, FLAG_NPRIV | FLAG_NSEC);
+
+    /* Memory layout: Secure at END for contiguous NS block
+     *   NS:     0x20000000 - 0x20090000 (576KB) = SRAM1 + SRAM2 + first 256KB of SRAM3
+     *   Secure: 0x30090000 - 0x300A0000 (64KB)  = last 64KB of SRAM3 via secure alias
+     *
+     * Configure all of SRAM1 as non-secure, non-privileged
+     */
+    gtzc_config_sram(SRAM1_BASE, SRAM1_SIZE, 0, SRAM1_SIZE - 1, FLAG_NSEC | FLAG_NPRIV);
+
+    /* Configure all of SRAM2 as non-secure, non-privileged */
+    gtzc_config_sram(SRAM2_BASE, SRAM2_SIZE, 0, SRAM2_SIZE - 1, FLAG_NSEC | FLAG_NPRIV);
+
+    /* Configure SRAM3: NS portion at start, Secure portion at end
+     * NS portion: 0 to (SRAM3_SIZE - S_TOTAL_RAM_SIZE - 1)
+     * Secure portion: (SRAM3_SIZE - S_TOTAL_RAM_SIZE) to end (handled by TF-M)
+     */
+    gtzc_config_sram(SRAM3_BASE, SRAM3_SIZE, 0,
+            SRAM3_SIZE - S_TOTAL_RAM_SIZE - 1, FLAG_NPRIV | FLAG_NSEC);
+    /* The remaining S_TOTAL_RAM_SIZE at end of SRAM3 stays secure (default) */
 
     GTZC_MPCBB1_S->CFGLOCKR1=MPCBB_LOCK(SRAM1_SIZE);
     GTZC_MPCBB2_S->CFGLOCKR1=MPCBB_LOCK(SRAM2_SIZE);
@@ -615,32 +610,13 @@ void gtzc_init_cfg(void)
   /* Verification stage */
   else
   {
-#if S_TOTAL_RAM1_SIZE != 0
-      /*  is unpriv area ending in SRAM1 */
-      if ((SRAM2_BASE > (uint32_t)&REGION_NAME(Image$$, TFM_APP_RW_STACK_END, $$Base)))
-      {
-          gtzc_config_sram(SRAM1_BASE, SRAM1_SIZE, (NS_DATA_START + NS_DATA_SIZE) - NS_RAM_ALIAS(0),
-                  (uint32_t)&REGION_NAME(Image$$, TFM_APP_RW_STACK_END, $$Base) - SRAM1_BASE  -1, FLAG_NPRIV);
-          gtzc_config_sram(SRAM1_BASE, SRAM1_SIZE, (uint32_t)&REGION_NAME(Image$$, TFM_APP_RW_STACK_END, $$Base) - SRAM1_BASE,
-                  SRAM1_SIZE - 1, 0);
-          gtzc_config_sram(SRAM2_BASE, SRAM2_SIZE, 0, SRAM2_SIZE - 1, 0);
-      }
-      else
-      {
-          gtzc_config_sram(SRAM1_BASE, SRAM1_SIZE, (NS_DATA_START + NS_DATA_SIZE) - NS_RAM_ALIAS(0), SRAM1_SIZE -1, FLAG_NPRIV);
-          gtzc_config_sram(SRAM2_BASE, SRAM2_SIZE, 0, (uint32_t)&REGION_NAME(Image$$, TFM_APP_RW_STACK_END, $$Base)
-                  - SRAM2_BASE - 1, FLAG_NPRIV);
-          gtzc_config_sram(SRAM2_BASE, SRAM2_SIZE, (uint32_t)&REGION_NAME(Image$$, TFM_APP_RW_STACK_END, $$Base)
-                  - SRAM2_BASE, SRAM2_SIZE - 1, 0);
-      }
-#else
-      /*   only SRAM2 is secure  */
-      gtzc_config_sram(SRAM2_BASE, SRAM2_SIZE, 0, (uint32_t)&REGION_NAME(Image$$, TFM_APP_RW_STACK_END, $$Base)
-              - SRAM2_BASE - 1, FLAG_NPRIV);
-      gtzc_config_sram(SRAM2_BASE, SRAM2_SIZE, (uint32_t)&REGION_NAME(Image$$, TFM_APP_RW_STACK_END, $$Base)
-              -SRAM2_BASE, SRAM2_SIZE - 1, 0);
-#endif
-      gtzc_config_sram(SRAM3_BASE, SRAM3_SIZE, 0, SRAM3_SIZE -1, FLAG_NPRIV | FLAG_NSEC);
+    /* Verify memory layout: Secure at END for contiguous NS block
+     * Same configuration as setup stage for verification
+     */
+    gtzc_config_sram(SRAM1_BASE, SRAM1_SIZE, 0, SRAM1_SIZE - 1, FLAG_NSEC | FLAG_NPRIV);
+    gtzc_config_sram(SRAM2_BASE, SRAM2_SIZE, 0, SRAM2_SIZE - 1, FLAG_NSEC | FLAG_NPRIV);
+    gtzc_config_sram(SRAM3_BASE, SRAM3_SIZE, 0,
+            SRAM3_SIZE - S_TOTAL_RAM_SIZE - 1, FLAG_NPRIV | FLAG_NSEC);
     if (GTZC_MPCBB1_S->CFGLOCKR1 != MPCBB_LOCK(SRAM1_SIZE)) Error_Handler();
     if (GTZC_MPCBB2_S->CFGLOCKR1 != MPCBB_LOCK(SRAM2_SIZE)) Error_Handler();
     if (GTZC_MPCBB3_S->CFGLOCKR1 != MPCBB_LOCK(SRAM3_SIZE)) Error_Handler();
