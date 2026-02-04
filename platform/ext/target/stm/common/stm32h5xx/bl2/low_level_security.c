@@ -429,19 +429,19 @@ static const uint32_t ProductStatePrioList[] = {
 /*----------------------|  IWDG |------------------------------------*/
 /* IWDG */
 
-/* Vario3 platform needs UART4 or UART7 accessible from NS (Zephyr) */
+/* Platform-specific UART configuration for NS (Zephyr) access */
 #if defined(TFM_VARIO3_USE_UART7)
-/* UART7 for v1 prototype boards */
+/* Vario3 v1 prototype boards: UART7 (PE8/PE7) */
 #define TZSC_MASK_R1  (GTZC_CFGR1_USART2_Msk | GTZC_CFGR1_USART3_Msk | GTZC_CFGR1_SPI3_Msk  | GTZC_CFGR1_SPI2_Msk | \
                        GTZC_CFGR1_I3C1_Msk   | GTZC_CFGR1_IWDG_Msk   | GTZC_CFGR1_UART7_Msk)
 #elif defined(TFM_PLATFORM_STM_VARIO3)
-/* UART4 for v2 production boards (default for vario3) */
+/* Vario3 v2 production boards: UART4 (PC10/PI9) */
 #define TZSC_MASK_R1  (GTZC_CFGR1_USART2_Msk | GTZC_CFGR1_USART3_Msk | GTZC_CFGR1_SPI3_Msk  | GTZC_CFGR1_SPI2_Msk | \
                        GTZC_CFGR1_I3C1_Msk   | GTZC_CFGR1_IWDG_Msk   | GTZC_CFGR1_UART4_Msk)
 #else
-/* Default for other platforms (stm32h573i_dk, etc.) */
+/* Default for STM32H573I-DK and other platforms: include UART7 for Pmod console */
 #define TZSC_MASK_R1  (GTZC_CFGR1_USART2_Msk | GTZC_CFGR1_USART3_Msk | GTZC_CFGR1_SPI3_Msk  | GTZC_CFGR1_SPI2_Msk | \
-                       GTZC_CFGR1_I3C1_Msk   | GTZC_CFGR1_IWDG_Msk)
+                       GTZC_CFGR1_I3C1_Msk   | GTZC_CFGR1_IWDG_Msk   | GTZC_CFGR1_UART7_Msk)
 #endif
 
 #define TZSC_MASK_R2  (GTZC_CFGR2_USART1_Msk | GTZC_CFGR2_SPI1_Msk   | GTZC_CFGR2_I2C3_Msk  | GTZC_CFGR2_I2C4_Msk  | \
