@@ -25,12 +25,34 @@
  *
  * Default: UART4 on PC10 (TX) / PI9 (RX) - Vario3 v2 production boards
  * Optional: UART7 on PE8 (TX) / PE7 (RX) - Vario3 v1 prototype boards
+ * Optional: UART7 on PF7 (TX) / PF6 (RX) - DK board Pmod connector
  *
- * To use UART7 instead of UART4, define TFM_VARIO3_USE_UART7 in your build:
- *   -DTFM_VARIO3_USE_UART7=ON
+ * Build options:
+ *   -DTFM_VARIO3_USE_UART7=ON       (v1 prototype: PE8/PE7)
+ *   -DTFM_VARIO3_USE_UART7_PMOD=ON  (DK Pmod connector: PF7/PF6)
  */
 
-#if defined(TFM_VARIO3_USE_UART7)
+#if defined(TFM_VARIO3_USE_UART7_PMOD)
+/*
+ * UART7 Configuration - DK board Pmod connector (PF7/PF6)
+ * For testing Vario3 firmware on STM32H573I-DK with console on Pmod CN6.
+ * TX: PF7 (AF7)
+ * RX: PF6 (AF7)
+ */
+#define COM_INSTANCE                           UART7
+#define COM_CLK_ENABLE()                       __HAL_RCC_UART7_CLK_ENABLE()
+#define COM_CLK_DISABLE()                      __HAL_RCC_UART7_CLK_DISABLE()
+#define COM_TX_GPIO_PORT                       GPIOF
+#define COM_TX_GPIO_CLK_ENABLE()               __HAL_RCC_GPIOF_CLK_ENABLE()
+#define COM_TX_PIN                             GPIO_PIN_7
+#define COM_TX_AF                              GPIO_AF7_UART7
+
+#define COM_RX_GPIO_PORT                       GPIOF
+#define COM_RX_GPIO_CLK_ENABLE()               __HAL_RCC_GPIOF_CLK_ENABLE()
+#define COM_RX_PIN                             GPIO_PIN_6
+#define COM_RX_AF                              GPIO_AF7_UART7
+
+#elif defined(TFM_VARIO3_USE_UART7)
 /*
  * UART7 Configuration - Vario3 v1 prototype boards
  * TX: PE8 (AF7)
@@ -68,7 +90,7 @@
 #define COM_RX_PIN                             GPIO_PIN_9
 #define COM_RX_AF                              GPIO_AF8_UART4
 
-#endif /* TFM_VARIO3_USE_UART7 */
+#endif /* TFM_VARIO3_USE_UART7_PMOD / TFM_VARIO3_USE_UART7 */
 
 /* config for flash driver */
 #define FLASH0_SECTOR_SIZE	0x2000

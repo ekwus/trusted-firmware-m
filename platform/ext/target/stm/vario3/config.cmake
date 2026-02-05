@@ -14,12 +14,17 @@ add_compile_definitions(TFM_PLATFORM_STM_VARIO3)
 ################################## Vario3 UART Configuration ###########################
 # By default, Vario3 uses UART4 (PC10=TX, PI9=RX) for console output.
 # Set TFM_VARIO3_USE_UART7=ON to use UART7 (PE8=TX, PE7=RX) for v1 prototype boards.
-set(TFM_VARIO3_USE_UART7            OFF         CACHE BOOL      "Use UART7 instead of UART4 for console (v1 prototype boards)")
+# Set TFM_VARIO3_USE_UART7_PMOD=ON to use UART7 (PF7=TX, PF6=RX) for DK Pmod connector.
+set(TFM_VARIO3_USE_UART7            OFF         CACHE BOOL      "Use UART7 (PE8/PE7) for console (v1 prototype boards)")
+set(TFM_VARIO3_USE_UART7_PMOD       OFF         CACHE BOOL      "Use UART7 (PF7/PF6) for console (DK board Pmod connector)")
 
-message(STATUS "Vario3 TF-M config: TFM_VARIO3_USE_UART7=${TFM_VARIO3_USE_UART7}")
+message(STATUS "Vario3 TF-M config: TFM_VARIO3_USE_UART7=${TFM_VARIO3_USE_UART7}, TFM_VARIO3_USE_UART7_PMOD=${TFM_VARIO3_USE_UART7_PMOD}")
 
-if(TFM_VARIO3_USE_UART7)
-    message(STATUS "Vario3 TF-M: Enabling UART7 compile definition")
+if(TFM_VARIO3_USE_UART7_PMOD)
+    message(STATUS "Vario3 TF-M: Using UART7 on PF7/PF6 (DK Pmod connector)")
+    add_compile_definitions(TFM_VARIO3_USE_UART7_PMOD)
+elseif(TFM_VARIO3_USE_UART7)
+    message(STATUS "Vario3 TF-M: Using UART7 on PE8/PE7 (v1 prototype)")
     add_compile_definitions(TFM_VARIO3_USE_UART7)
 else()
     message(STATUS "Vario3 TF-M: Using default UART4")
