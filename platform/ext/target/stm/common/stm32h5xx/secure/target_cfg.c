@@ -562,6 +562,18 @@ void gtzc_init_cfg(void)
     HAL_GTZC_TZIC_EnableIT(GTZC_PERIPH_SAES);
 #endif
 
+    /* Configure UART peripherals as non-secure for Zephyr NS console access */
+#if defined(TFM_VARIO3_USE_UART7_PMOD) || defined(TFM_VARIO3_USE_UART7)
+    /* UART7: DK Pmod connector (PF7/PF6) or Vario3 v1 prototype (PE8/PE7) */
+    HAL_GTZC_TZSC_ConfigPeriphAttributes(GTZC_PERIPH_UART7, GTZC_TZSC_PERIPH_NSEC | GTZC_TZSC_PERIPH_NPRIV);
+#elif defined(TFM_PLATFORM_STM_VARIO3)
+    /* Vario3 v2 production: UART4 on PC10/PI9 */
+    HAL_GTZC_TZSC_ConfigPeriphAttributes(GTZC_PERIPH_UART4, GTZC_TZSC_PERIPH_NSEC | GTZC_TZSC_PERIPH_NPRIV);
+#else
+    /* STM32H573I-DK and other platforms: USART1 on ST-LINK VCP */
+    HAL_GTZC_TZSC_ConfigPeriphAttributes(GTZC_PERIPH_USART1, GTZC_TZSC_PERIPH_NSEC | GTZC_TZSC_PERIPH_NPRIV);
+#endif
+
     FLOW_CONTROL_STEP(uFlowProtectValue, FLOW_STEP_GTZC_PERIPH_CFG, FLOW_CTRL_GTZC_PERIPH_CFG);
 
     /*  enable interruption on illegal access on FLASH ,FLASH reg , Secure SRAM2 and Secure Peripheral*/
