@@ -55,6 +55,7 @@ static fih_int tfm_core_init(void)
      * the logging backend.
      */
     SPMLOG_INFMSG("\033[1;34mBooting TF-M "VERSION_FULLSTR"\033[0m\r\n");
+    SPMLOG_INFMSG("TF-M Built: " __DATE__ " " __TIME__ "\r\n");
 
     plat_err = tfm_plat_otp_init();
     if (plat_err != TFM_PLAT_ERR_SUCCESS) {
