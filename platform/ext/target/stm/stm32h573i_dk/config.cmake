@@ -11,7 +11,13 @@ set(MCUBOOT_IMAGE_NUMBER                   2           CACHE STRING    "Whether 
 set(BL2_HEADER_SIZE                        0x400       CACHE STRING    "Header size")
 set(BL2_TRAILER_SIZE                       0x2000      CACHE STRING    "Trailer size")
 set(MCUBOOT_ALIGN_VAL                      16          CACHE STRING    "Align option to build image with imgtool")
-set(MCUBOOT_UPGRADE_STRATEGY        "SWAP_USING_SCRATCH"      CACHE STRING    "Upgrade strategy for images")
+# BL2 for STM32H5 is hardcoded to MCUBOOT_OVERWRITE_ONLY in
+# trusted-firmware-m/platform/ext/target/stm/common/stm32h5xx/CMakeLists.txt
+# (FLAGS_FOR_BL2_PREPROCESSING). The strategy below is what imgtool sees when
+# signing images, and MUST match what BL2 expects — otherwise BL2 silently
+# rejects the staged image (header/trailer size mismatch) and just re-boots
+# the running slot. Keep these aligned.
+set(MCUBOOT_UPGRADE_STRATEGY        "OVERWRITE_ONLY"          CACHE STRING    "Upgrade strategy for images")
 set(TFM_PARTITION_PLATFORM                 ON          CACHE BOOL      "Enable platform partition")
 set(MCUBOOT_DATA_SHARING                   ON          CACHE BOOL      "Enable Data Sharing")
 set(MCUBOOT_BOOTSTRAP                      ON          CACHE BOOL      "Allow initial state with images in secondary slots(empty primary slots)")

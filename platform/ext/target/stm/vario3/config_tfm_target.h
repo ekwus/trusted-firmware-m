@@ -20,4 +20,5 @@
  * plus headroom for other ITS consumers (crypto keys, etc.). */
 #define ITS_NUM_ASSETS                         20
 
+
 #endif /* __CONFIG_TFM_TARGET_H__ */

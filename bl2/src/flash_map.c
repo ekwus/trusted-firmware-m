@@ -127,7 +127,12 @@ int flash_area_read(const struct flash_area *area, uint32_t off, void *dst,
 
     ARM_FLASH_CAPABILITIES DriverCapabilities;
 
-    BOOT_LOG_DBG("read area=%d, off=%#x, len=%#x", area->fa_id, off, len);
+    /* Silenced: this fires on every 256-byte read during image hashing and
+     * floods the serial console with thousands of lines, pushing the
+     * actually-useful MCUboot validation messages off any reasonable terminal
+     * scrollback. Re-enable only if debugging the flash_map layer itself.
+     */
+    /* BOOT_LOG_DBG("read area=%d, off=%#x, len=%#x", area->fa_id, off, len); */
 
     if (!is_range_valid(area, off, len)) {
         return -1;
