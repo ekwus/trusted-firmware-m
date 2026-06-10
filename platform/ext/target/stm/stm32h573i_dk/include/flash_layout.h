@@ -196,7 +196,17 @@
 #endif /*  (FLASH_AREA_3_OFFSET  % FLASH_AREA_IMAGE_SECTOR_SIZE) != 0 */
 /*Control Non-secure image secondary slot */
 #define FLASH_AREA_3_SIZE               (FLASH_NS_PARTITION_SIZE)
-#define FLASH_AREA_END_OFFSET           (FLASH_AREA_3_OFFSET + FLASH_AREA_3_SIZE)
+
+/* Non-secure user-data region, immediately after the NS secondary slot.
+ * Backs Zephyr's storage_partition which holds the user-uploaded HTTPS
+ * server cert. The SAU's NON_SECURE_LIMIT in target_cfg.c is derived from
+ * FLASH_AREA_END_OFFSET, so this area must be included for NS reads to
+ * 0x198000+ to succeed without faulting. */
+#define FLASH_AREA_USER_STORAGE_OFFSET  (FLASH_AREA_3_OFFSET + FLASH_AREA_3_SIZE)
+#define FLASH_AREA_USER_STORAGE_SIZE    (0x8000)  /* 32 KB, matches DT */
+
+#define FLASH_AREA_END_OFFSET           (FLASH_AREA_USER_STORAGE_OFFSET + \
+                                          FLASH_AREA_USER_STORAGE_SIZE)
 #define FLASH_AREA_SCRATCH_ID           (FLASH_AREA_3_ID + 1)
 #define FLASH_AREA_SCRATCH_DEVICE_ID    (FLASH_AREA_3_DEVICE_ID)
 
