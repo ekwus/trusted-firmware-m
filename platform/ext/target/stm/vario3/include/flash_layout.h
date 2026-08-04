@@ -197,16 +197,33 @@
 /*Control Non-secure image secondary slot */
 #define FLASH_AREA_3_SIZE               (FLASH_NS_PARTITION_SIZE)
 
-/* Non-secure user-data region, immediately after the NS secondary slot.
- * Backs Zephyr's storage_partition (vario3_stm32h573xx_ns.dts:95) which
- * holds the user-uploaded HTTPS server cert. The SAU's NON_SECURE_LIMIT
- * in target_cfg.c is derived from FLASH_AREA_END_OFFSET, so this area
- * must be included for NS reads to 0x198000+ to succeed without faulting. */
+/* Non-secure user-data regions, immediately after the NS secondary slot.
+ * These back Zephyr's storage_partition / audit_partition /
+ * blackbox_partition (vario3_stm32h573xx_ns.dts). The SAU's
+ * NON_SECURE_LIMIT in target_cfg.c is derived from FLASH_AREA_END_OFFSET
+ * (and so are BL2's MPU regions 2 and 10 and BL2's SAU region 1), so every
+ * NS-accessible area must be inside it or NS access faults.
+ *
+ * All three sit in flash bank 2, which BL2 forces fully non-secure, and
+ * NS code executes from bank 1 — so erases here never stall instruction
+ * fetch. Keep each SIZE in step with the matching DT partition. */
+
+/* HTTPS server cert container */
 #define FLASH_AREA_USER_STORAGE_OFFSET  (FLASH_AREA_3_OFFSET + FLASH_AREA_3_SIZE)
 #define FLASH_AREA_USER_STORAGE_SIZE    (0x8000)  /* 32 KB, matches DT */
 
-#define FLASH_AREA_END_OFFSET           (FLASH_AREA_USER_STORAGE_OFFSET + \
+/* Audit log ring - 4 x 8 KB sectors */
+#define FLASH_AREA_USER_AUDIT_OFFSET    (FLASH_AREA_USER_STORAGE_OFFSET + \
                                           FLASH_AREA_USER_STORAGE_SIZE)
+#define FLASH_AREA_USER_AUDIT_SIZE      (0x8000)  /* 32 KB, matches DT */
+
+/* Blackbox recorder ring - 4 x 8 KB sectors */
+#define FLASH_AREA_USER_BLACKBOX_OFFSET (FLASH_AREA_USER_AUDIT_OFFSET + \
+                                          FLASH_AREA_USER_AUDIT_SIZE)
+#define FLASH_AREA_USER_BLACKBOX_SIZE   (0x8000)  /* 32 KB, matches DT */
+
+#define FLASH_AREA_END_OFFSET           (FLASH_AREA_USER_BLACKBOX_OFFSET + \
+                                          FLASH_AREA_USER_BLACKBOX_SIZE)
 #define FLASH_AREA_SCRATCH_ID           (FLASH_AREA_3_ID + 1)
 #define FLASH_AREA_SCRATCH_DEVICE_ID    (FLASH_AREA_3_DEVICE_ID)
 
